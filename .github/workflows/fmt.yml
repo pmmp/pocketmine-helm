@@ -1,0 +1,21 @@
+name: Format check
+
+on:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Format check
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Regenerate code and reformat
+        run: touch pkg/apis/pocketmine && make fmt
+
+      - name: Check difference
+        run: git diff --exit-code

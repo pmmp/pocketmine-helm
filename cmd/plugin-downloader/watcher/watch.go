@@ -34,7 +34,7 @@ type Controller struct {
 	pluginsClient   func(namespace string) pocketminev1alpha1typedclientset.PluginInterface
 	pluginsInformer cache.SharedIndexInformer
 	pluginsLister   pocketminev1alpha1lister.PluginLister
-	handler *pluginEventHandler
+	handler         *pluginEventHandler
 }
 
 func New(client *client.Client, mountPath string) *Controller {
@@ -52,7 +52,7 @@ func New(client *client.Client, mountPath string) *Controller {
 		pluginsClient:   client.Plugins,
 		pluginsInformer: client.PluginsInformer.Informer(),
 		pluginsLister:   client.PluginsInformer.Lister(),
-		handler: handler,
+		handler:         handler,
 	}
 }
 

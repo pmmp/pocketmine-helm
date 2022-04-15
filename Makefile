@@ -6,7 +6,7 @@ fmt: pkg/client
 
 chart/crds: $(shell find ./pkg/apis)
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen \
-		paths=./pkg/apis/... crds output:crd:artifacts:config=./chart/crds
+		paths=./pkg/apis/... crd output:crd:artifacts:config=./chart/crds
 
 bin/plugin-downloader: pkg/client $(shell find cmd/plugin-downloader)
 	go build -o bin/plugin-downloader github.com/pmmp/pocketmine-helm/cmd/plugin-downloader
@@ -20,9 +20,10 @@ pkg/client: $(shell find ./pkg/apis)
 		deepcopy,client,informer,lister \
 		github.com/pmmp/pocketmine-helm/pkg/client \
 		github.com/pmmp/pocketmine-helm/pkg/apis \
-		pocketmine:v1alpha1
+		pocketmine:v1alpha1 \
+		--go-header-file /dev/null
 	touch pkg/client
-	go fmt pkg/client/...
+	go fmt ./pkg/client/...
 
 .PHONY: apply-crd
 
