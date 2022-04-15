@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+
+{{- if .Values.scaling.stateful }}
+kind: StatefulSet
+{{- else }}
+kind: Deployment
+{{- end }}
+
+metadata:
+  name: {{ .Release.name }}
+  labels: {{ toJson .Values.workload.labels }}
+
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.name }}
+  replicas: {{ .Values.scaling.replicas }}
+  progressDeadlineSeconds: {{ .Values.workload.startupTimeout }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.name }}
+    spec:
+      containers:
+        - name: pocketmine
+          image: pmmp/pocketmine-mp:{{ .Values.pocketmine.version }}
+          ports:
+            - containerPort: 19132
+              protocol: UDP
+              name: minecraft
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: plugins
+
+      {{- if not .Values.scaling.stateful }}
+        - name: data
+          configMap:
+            name: data
+            items:
+              - key: server.properties
+                path: server.properties
+              - key: pocketmine.yml
+                path: pocketmine.yml
+      {{- end }}
+  {{- if .Values.scaling.stateful }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: "" # TODO
+  {{- end }}
+...

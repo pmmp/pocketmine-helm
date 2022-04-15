@@ -1,0 +1,16 @@
+pocketmine:
+  version: 4.0.0
+
+scaling:
+  # Whether to persist the data folder of each server.
+  # Uses a StatefulSet if true, uses Deployment otherwise.
+  stateful: false
+  replicas: 1
+
+workload:
+  # Labels applied on the Deployment/StatefulSet running PocketMine
+  labels:
+    app: pocketmine
+
+  # Container startup is considered failure if health check does not report positive within `startupTimeoutSeconds` seconds
+  startupTimeoutSeconds: 30

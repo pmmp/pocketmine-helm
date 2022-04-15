@@ -1,0 +1,15 @@
+apiVersion: v2
+name: pocketmine
+version: 0.1.0
+description: PocketMine-MP
+type: application
+home: https://pmmp.io
+sources:
+  - https://github.com/pmmp/PocketMine-MP
+  - https://github.com/pmmp/PocketMine-Docker
+  - https://github.com/pmmp/helm
+maintainers:
+  - name: PMMP Team
+    email: team@pmmp.io
+    url: https://pmmp.io
+appVersion: 4.0.0

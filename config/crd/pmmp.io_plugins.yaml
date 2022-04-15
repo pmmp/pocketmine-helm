@@ -1,0 +1,97 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
+  name: plugins.pmmp.io
+spec:
+  group: pmmp.io
+  names:
+    kind: Plugin
+    listKind: PluginList
+    plural: plugins
+    singular: plugin
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Plugin specifies that a plugin should be installed in servers
+          that share the same `pocketmine-server` label.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PluginSpec is the spec for a Plugin resource.
+            properties:
+              dependencyPolicy:
+                default: AutoCreate
+                description: DependencyPolicy specifies the behavior when a plugin
+                  has a missing dependency.
+                enum:
+                - AutoCreate
+                - FailOnMissing
+                type: string
+              source:
+                description: Source is the method to install the plugin.
+                maxProperties: 1
+                minProperties: 1
+                properties:
+                  data:
+                    description: Data is the raw plugin phar contents.
+                    format: byte
+                    type: string
+                  http:
+                    description: Http is the HTTP URL to download the plugin from.
+                    properties:
+                      timeoutSeconds:
+                        default: 60
+                        description: TimeoutSeconds is the number of seconds to wait
+                          for the plugin to download before timing out.
+                        format: int64
+                        type: integer
+                      url:
+                        description: Url is the HTTP/HTTPS URL to download the plugin
+                          from.
+                        format: uri
+                        type: string
+                    required:
+                    - url
+                    type: object
+                type: object
+            required:
+            - source
+            type: object
+          status:
+            description: PluginStatus is the status for a Plugin resource.
+            properties:
+              expectedChecksum:
+                description: ExpectedChecksum is the crc32 checksum of the plugin.
+                  If the value is nil, the plugin has not been installed on any hosts
+                  yet. Reset this value to nil to force update the plugin.
+                format: int32
+                type: integer
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

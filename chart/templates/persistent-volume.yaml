@@ -1,0 +1,12 @@
+{{ if .Values.scaling.stateful }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.name }}-data
+spec:
+  storageClassName: "" # TODO
+---
+apiVersion: v1
+{{ end }}
+...
