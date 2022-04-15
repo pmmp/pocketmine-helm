@@ -1,10 +1,14 @@
 pocketmine:
+  # The version of PocketMine to use.
+  # Specifying x.y.z will lock to that version.
+  # Specifying x.y will select the latest version that minor version.
   version: 4.0.0
 
 scaling:
   # Whether to persist the data folder of each server.
   # Uses a StatefulSet if true, uses Deployment otherwise.
   stateful: false
+  # Number of server instances to run.
   replicas: 1
 
 workload:
@@ -14,3 +18,16 @@ workload:
 
   # Container startup is considered failure if health check does not report positive within `startupTimeoutSeconds` seconds
   startupTimeoutSeconds: 30
+
+plugins:
+  # The plugin downloader runs on each node to download the plugins to a host path.
+  downloader:
+    # Whether to run the plugin-downloader controller on each node.
+    # Disable this if you have another helm chart running and use the same `path`.
+    enabled: true
+    # Whether the namespace controller should download plugins from other namespaces.
+    # This value is ignored if .plugins.downloader.enabled is false.
+    namespaced: true
+    # The path is /tmp/pocketmine-plugin-downloader/{release namespace}/{release name} by default.
+    # Set a custom value to share the downloader in multiple charts.
+    path: null

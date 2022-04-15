@@ -1,0 +1,23 @@
+{{ if .Values.plugins.downloader.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+{{- if .Values.plugins.downloader.namespaced }}
+kind: RoleBinding
+{{- else }}
+kind: ClusterRoleBinding
+{{- end }}
+metadata:
+  name: {{ .Release.Name }}-plugin-downloader
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}-plugin-downloader
+    {{- if not .Values.plugins.downloader.namespaced }}
+    namespace: {{ .Release.Namespace }}
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Release.Name }}-plugin-downloader
+...
+{{- end }}

@@ -1,0 +1,17 @@
+{{ if .Values.plugins.downloader.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+{{- if .Values.plugins.downloader.namespaced }}
+kind: Role
+{{- else }}
+kind: ClusterRole
+{{- end }}
+metadata:
+  name: {{ .Release.Name }}-plugin-downloader
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [pmmp.io]
+    resourceNames: [plugins]
+    verbs: [get, list, watch, patch, update]
+...
+{{- end }}

@@ -32,11 +32,18 @@ spec:
           volumeMounts:
             - name: plugins
               mountPath: /plugins
+              readOnly: true
             - name: data
               mountPath: /data
       volumes:
         - name: plugins
-
+          hostPath:
+            {{- if .Values.plugins.downloader.path }}
+            path: {{ .Values.plugins.downloader.path }}
+            {{- else }}
+            path: /tmp/pocketmine-plugin-downloader/{{ .Release.Namespace }}/{{ .Release.Name }}
+            {{- end }}
+            type: DirectoryOrCreate
       {{- if not .Values.scaling.stateful }}
         - name: data
           configMap:

@@ -7,6 +7,7 @@ fmt: pkg/client
 chart/crds: $(shell find ./pkg/apis)
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen \
 		paths=./pkg/apis/... crd output:crd:artifacts:config=./chart/crds
+	touch chart/crds
 
 bin/plugin-downloader: pkg/client $(shell find cmd/plugin-downloader)
 	go build -o bin/plugin-downloader github.com/pmmp/pocketmine-helm/cmd/plugin-downloader

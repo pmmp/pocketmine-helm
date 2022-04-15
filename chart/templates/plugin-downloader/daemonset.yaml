@@ -1,10 +1,10 @@
+{{ if .Values.plugins.downloader.enabled }}
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ .Release.Name }}-plugin-downloader
   namespace: {{ .Release.Namespace }}
-
 spec:
   selector:
     matchLabels:
@@ -18,11 +18,18 @@ spec:
         - name: plugin-downloader
           image: ghcr.io/pmmp/pocketmine-helm/plugin-downloader:dev
           volumeMounts:
-            - name: mnt-plugins
+            - name: plugins
               mountPath: /mnt/plugins
+              subPath: {{ .Release.Namespace }}
       volumes:
-        - name: mnt-plugins
+        - name: plugins
           hostPath:
-            path: /tmp/plugin-downloader/{{ .Release.Namespace }}/{{ .Release.Name }}
+            {{- if .Values.plugins.downloader.path }}
+            path: {{ .Values.plugins.downloader.path }}
+            {{- else }}
+            path: /tmp/pocketmine-plugin-downloader/{{ .Release.Namespace }}/{{ .Release.Name }}
+            {{- end }}
             type: DirectoryOrCreate
+      serviceAccountName: {{ .Release.Name }}-plugin-downloader
 ...
+{{- end }}
