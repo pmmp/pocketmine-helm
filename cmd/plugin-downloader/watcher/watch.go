@@ -34,28 +34,30 @@ type Controller struct {
 	pluginsClient   func(namespace string) pocketminev1alpha1typedclientset.PluginInterface
 	pluginsInformer cache.SharedIndexInformer
 	pluginsLister   pocketminev1alpha1lister.PluginLister
+	handler *pluginEventHandler
 }
 
 func New(client *client.Client, mountPath string) *Controller {
 	client.PluginsInformer.Lister()
+
+	handler := &pluginEventHandler{
+		set:            make(map[resourceIdentifier]struct{}),
+		updateNotifier: make(chan struct{}, 1),
+	}
+	client.PluginsInformer.Informer().AddEventHandler(handler)
+
 	return &Controller{
 		httpClient:      &http.Client{},
 		mountPath:       mountPath,
 		pluginsClient:   client.Plugins,
 		pluginsInformer: client.PluginsInformer.Informer(),
 		pluginsLister:   client.PluginsInformer.Lister(),
+		handler: handler,
 	}
 }
 
 func (c *Controller) Run(stopCh <-chan struct{}) {
 	ctx := context.TODO()
-
-	updateNotifier := make(chan struct{}, 1)
-	handler := &pluginEventHandler{
-		set:            make(map[resourceIdentifier]struct{}),
-		updateNotifier: updateNotifier,
-	}
-	c.pluginsInformer.AddEventHandler(handler)
 
 	errWaitingForSync := errors.New("waiting for sync")
 	retry.OnError(retry.DefaultBackoff, func(err error) bool {
@@ -73,8 +75,8 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 
 	for {
 		select {
-		case <-updateNotifier:
-			set := handler.clear()
+		case <-c.handler.updateNotifier:
+			set := c.handler.clear()
 
 			ids := make([]resourceIdentifier, 0, len(set))
 			for id := range set {
@@ -131,8 +133,10 @@ func fileExists(path string) (bool, error) {
 	return false, err
 }
 
-func crc32File(path string) (uint32, error) {
+func crc32File(id string, path string) (uint32, error) {
 	hash := crc32.NewIEEE()
+
+	_, _ = hash.Write([]byte(id)) // infallible
 
 	handle, err := os.Open(path)
 	if err != nil {
@@ -149,7 +153,8 @@ func crc32File(path string) (uint32, error) {
 			}
 			return 0, err
 		}
-		hash.Write(buf[:n])
+
+		_, _ = hash.Write(buf[:n]) // infallible
 	}
 
 	return hash.Sum32(), nil
@@ -198,6 +203,8 @@ func downloadPlugin(ctx context.Context, client *http.Client, source *pocketmine
 }
 
 func (c *Controller) reconcile(ctx context.Context, id resourceIdentifier, wgDone func()) {
+	defer wgDone()
+
 	path := c.getPath(id)
 
 	plugin, err := c.pluginsLister.Plugins(id.namespace).Get(id.name)
@@ -223,8 +230,13 @@ func (c *Controller) reconcile(ctx context.Context, id resourceIdentifier, wgDon
 			exists = false // assume does not exist
 		}
 
+		hashBase := ""
+		if plugin.Spec.Source.Http != nil {
+			hashBase = plugin.Spec.Source.Http.Url
+		}
+
 		if exists && plugin.Status.ExpectedChecksum != nil {
-			cksum, err := crc32File(path)
+			cksum, err := crc32File(hashBase, path)
 			if err != nil {
 				klog.Errorf("Cannot calculate checksum of file %s: %s", path, err)
 				// continue to try to re-download it
@@ -239,7 +251,7 @@ func (c *Controller) reconcile(ctx context.Context, id resourceIdentifier, wgDon
 			return
 		}
 
-		cksum, err := crc32File(path)
+		cksum, err := crc32File(hashBase, path)
 		if err != nil {
 			klog.Errorf("Cannot calculate checksum of file %s: %s", path, err)
 		} else if plugin.Status.ExpectedChecksum == nil || cksum != *plugin.Status.ExpectedChecksum {
@@ -272,7 +284,7 @@ func (c *Controller) getPath(id resourceIdentifier) string {
 type pluginEventHandler struct {
 	set            map[resourceIdentifier]struct{}
 	mutex          sync.Mutex
-	updateNotifier chan<- struct{}
+	updateNotifier chan struct{}
 }
 
 type resourceIdentifier struct {

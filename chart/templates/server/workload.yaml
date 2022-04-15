@@ -8,19 +8,19 @@ kind: Deployment
 {{- end }}
 
 metadata:
-  name: {{ .Release.name }}
+  name: {{ .Release.Name }}
   labels: {{ toJson .Values.workload.labels }}
 
 spec:
   selector:
     matchLabels:
-      app: {{ .Release.name }}
+      app: {{ .Release.Name }}
   replicas: {{ .Values.scaling.replicas }}
   progressDeadlineSeconds: {{ .Values.workload.startupTimeout }}
   template:
     metadata:
       labels:
-        app: {{ .Release.name }}
+        app: {{ .Release.Name }}
     spec:
       containers:
         - name: pocketmine

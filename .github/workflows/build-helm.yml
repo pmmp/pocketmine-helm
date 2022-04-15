@@ -1,0 +1,25 @@
+name: Build helm chart
+
+on:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build helm chart
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Build chart
+        working-directory: chart
+        run: mkdir ../output && tar czf ../output/chart.tar.gz .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: chart
+          path: ./output/chart.tar.gz

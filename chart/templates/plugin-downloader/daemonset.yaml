@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Release.Name }}-plugin-downloader
+  namespace: {{ .Release.Namespace }}
+
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-plugin-downloader
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-plugin-downloader
+    spec:
+      containers:
+        - name: plugin-downloader
+          image: ghcr.io/pmmp/pocketmine-helm/plugin-downloader:dev
+          volumeMounts:
+            - name: mnt-plugins
+              mountPath: /mnt/plugins
+      volumes:
+        - name: mnt-plugins
+          hostPath:
+            path: /tmp/plugin-downloader/{{ .Release.Namespace }}/{{ .Release.Name }}
+            type: DirectoryOrCreate
+...

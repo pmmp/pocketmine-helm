@@ -12,7 +12,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-type controller interface{
+type controller interface {
 	Run(stopCh <-chan struct{})
 }
 

@@ -3,10 +3,8 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Release.name }}-data
+  name: {{ .Release.Name }}-data
 spec:
   storageClassName: "" # TODO
----
-apiVersion: v1
-{{ end }}
 ...
+{{- end }}

@@ -1,12 +1,12 @@
 KUBECTL = kubectl
 
-all: fmt config/crd bin/plugin-downloader bin/server-manager
+all: fmt chart/crds bin/plugin-downloader bin/server-manager
 fmt: pkg/client
 	go fmt ./...
 
-config/crd: $(shell find ./pkg/apis)
+chart/crds: $(shell find ./pkg/apis)
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen \
-		paths=./pkg/apis/... crd output:crd:artifacts:config=./config/crd
+		paths=./pkg/apis/... crds output:crd:artifacts:config=./chart/crds
 
 bin/plugin-downloader: pkg/client $(shell find cmd/plugin-downloader)
 	go build -o bin/plugin-downloader github.com/pmmp/pocketmine-helm/cmd/plugin-downloader
@@ -26,5 +26,5 @@ pkg/client: $(shell find ./pkg/apis)
 
 .PHONY: apply-crd
 
-apply-crd: config/crd
-	$(KUBECTL) apply -f config/crd/*
+apply-crd: chart/crds
+	$(KUBECTL) apply -f chart/crds/*
