@@ -1,4 +1,5 @@
 KUBECTL = kubectl
+GOPATH = $(shell go env GOPATH)
 
 all: fmt chart/crds bin/plugin-downloader bin/server-manager
 fmt: pkg/client
